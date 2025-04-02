@@ -1,0 +1,170 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Psychological Career Profiling</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background-color: #EDE8DC;
+      color: #000;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .main-container {
+      max-width: 800px;
+      margin: 60px auto;
+      background-color: #fff;
+      border: 1px solid #C1CFA1;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    h1 {
+      margin-bottom: 30px;
+      color: #B17F59;
+    }
+    button {
+      margin: 10px 5px;
+      transition: all 0.3s ease-in-out;
+    }
+    .fade-in {
+      opacity: 0;
+      animation: fadeIn 0.5s ease-in-out forwards;
+    }
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+    .pet-img {
+      max-width: 150px;
+      border-radius: 8px;
+      margin: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .btn-earth {
+      background-color: #A5B68D;
+      color: #000;
+      border: 1px solid #B17F59;
+    }
+    .btn-earth:hover {
+      background-color: #C1CFA1;
+      color: #000;
+    }
+    hr {
+      border-top: 2px solid #C1CFA1;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="main-container text-center">
+      <h1>Psychological Career Profiling!</h1>
+      <h5>Welcome to your free psychological career profile!</h5>
+      <p>Ever wonder what career is meant for you? Who better to tell you than a stranger! Best part? If you don't like your results, you can keep retaking it until you are. No one will know ;)</p>
+
+      <div>
+        <button onclick="fetch_form()" class="btn btn-earth">Fetch form</button>
+        <button onclick="submit_form()" class="btn btn-earth">Submit form</button>
+        <button onclick="analyze()" class="btn btn-earth">Analyze</button>
+        <button onclick="view_input()" class="btn btn-earth">View input data</button>
+        <button onclick="view_profile()" class="btn btn-earth">View profile</button>
+      </div>
+
+      <hr>
+
+      <div id="mydiv1" class="fade-in mt-4"></div>
+    </div>
+  </div>
+
+  <script>
+    async function fetch_form() {
+      document.getElementById('mydiv1').innerHTML = `
+        <div class="text-center my-4">
+          <div class="spinner-border text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+`;
+      const res = await fetch('/form');
+      const html = await res.text();
+      document.getElementById('mydiv1').innerHTML = `<div class="fade-in">${html}</div>`;
+      document.getElementById('mydiv1').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function submit_form() {
+      document.getElementById('mydiv1').innerHTML = `
+        <div class="text-center my-4">
+          <div class="spinner-border text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      `;
+      const form = document.forms['psychoform'];
+      const formData = new URLSearchParams(new FormData(form)).toString();
+      const res = await fetch('/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData
+      });
+      const html = await res.text();
+      document.getElementById('mydiv1').innerHTML = `<div class="fade-in">${html}</div>`;
+      document.getElementById('mydiv1').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function analyze() {
+      document.getElementById('mydiv1').innerHTML = `
+        <div class="text-center my-4">
+          <div class="spinner-border text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      `;
+      const res = await fetch('/analyze');
+      const text = await res.text();
+      document.getElementById('mydiv1').innerHTML = `<div class="fade-in"><p>${text}</p></div>`;
+      document.getElementById('mydiv1').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function view_input() {
+      const res = await fetch('/view/input');
+      const data = await res.json();
+      const html = `
+        <div class="fade-in text-start">
+          <h4 style="color: #B17F59;">Form Input Data</h4>
+          <p><strong>Name:</strong> ${data.name}</p>
+          <p><strong>Job:</strong> ${data.job}</p>
+          <p><strong>Pets:</strong> ${Array.isArray(data.pets) ? data.pets.join(', ') : data.pets}</p>
+          <p><strong>Message:</strong> ${data.message}</p>
+        </div>
+      `;
+      document.getElementById('mydiv1').innerHTML = html;
+      document.getElementById('mydiv1').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function view_profile() {
+      const res = await fetch('/view/profile');
+      const profile = await res.json();
+      const petsHtml = Object.entries(profile.pet_images || {}).map(([type, url]) => {
+        return `<div><strong>${type}</strong><br><img class="pet-img" src="${url}"></div>`;
+      }).join('');
+      const html = `
+        <div class="fade-in text-start">
+          <h4 style="color: #B17F59;">Psychological Profile</h4>
+          <p><strong>Name:</strong> ${profile.name}</p>
+          <p><strong>Ideal Job:</strong> ${profile.job}</p>
+          <p><strong>Message about Job:</strong> ${profile.job_message}</p>
+          <p><strong>Recommended Movies:</strong> ${profile.movies.join(', ')}</p>
+          <p><strong>Your Message:</strong> ${profile.message}</p>
+          <div class="d-flex flex-wrap">${petsHtml}</div>
+        </div>
+      `;
+      document.getElementById('mydiv1').innerHTML = html;
+      document.getElementById('mydiv1').scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
+
+</body>
+</html>
